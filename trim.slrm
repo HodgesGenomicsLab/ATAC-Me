@@ -1,0 +1,29 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --time=35:00:00
+#SBATCH --mem=16G
+#SBATCH --job-name="trimgalore"
+#SBATCH -o trim_%A.out # Standard output
+#SBATCH -e trim_%A.err # Standard error
+#SBATCH --mail-user=yourEmail@university.edu
+#SBATCH --mail-type=END
+
+# #SBATCH lines set the parameters for the SLURM job scheduler request
+# #SBATCH lines define the resource that we are requesting to run the job
+
+
+module load Intel/2016.3.210-GCC-5.4.0-2.26 Python/2.7.12
+
+# Runs the trim_galore program to trim fastq reads of nextera adapters
+# Also runs fastqc program on the same files for quality checks
+
+# --clip_R1 9 --clip_R2 9 are added to remove the 9 bases that are genomic but filled in during bisulfite library construction
+# These bases are 100% hypomethylated due to being filled in entirely with dCTPs during construction
+# They are excluded to avoid artifical bias in DNA methylation level calculation, however, these bases are technically valid for mapping purposes
+# A better approach would be to ignore these bases for DNA meth level calcutions in later processing
+
+# unpaired reads are retained in case of any necessary analysis
+# These can be discarded if disk storage space is an issue
+
+trim_galore --fastqc --fastqc_args "--outdir ${FASTQC_DIR}" --clip_R1 9 --clip_R2 9 --paired --retain_unpaired --output_dir ${TRIM_DIR} ${R1} ${R2}
