@@ -1,0 +1,26 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=8
+#SBATCH --time=40:00:00
+#SBATCH --mem=64G
+#SBATCH --job-name="walt"
+#SBATCH -o walt_%A.out # Standard output
+#SBATCH -e walt_%A.err # Standard error
+
+#############################################
+# input variables:
+#   R1: Read-1 file
+#   R2: Read-2 file
+#   INDEX: genome index
+#   MAPPED_DIR: mapped reads directory
+#############################################
+
+# Sets up the prefix naming for output files 
+MAPPED=`basename $R1 |awk '{split($0, a, "_R1"); print a[1]}'`
+
+# Runs the WALT mapping algorithm for bisulfite sequencing libraries
+# Allows 6 mismatches
+# Run accross 8 threads
+# Output is sam file type
+walt -m 6 -t 8 -i ${INDEX} -1 ${R1} -2 ${R2} -o ${MAPPED_DIR}/${MAPPED}.sam
