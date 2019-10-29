@@ -1,0 +1,23 @@
+
+# Filter broadPeaks for a more strict q-value
+# Column 9 of broadPeaks represents the -log10 q-value/p-adjusted value for each peak call
+
+# Filter merged replicate peak calls
+awk '{ if ($9 >= 10) { print } }' R1_ATAC-Me_THP1_PMA_Rep1A_0.shifted.mergedReps.bed_peaks.broadPeak > \
+/data/hodges_lab/EH4889/trimmed_reads/mapped_reads/macs/pooledpeaks/broadpeaks_concordant/R1_ATAC-Me_THP1_PMA_Rep1A_0.mergedReps.broadPeak.q10 
+
+# Filter replicate 1 peak calls
+awk '{ if ($9 >= 10) { print } }' R1_ATAC-Me_THP1_PMA_Rep1A_0_val_1.fq.sam.bam.shifted.bed_peaks.broadPeak > \
+/data/hodges_lab/EH4889/trimmed_reads/mapped_reads/macs/pooledpeaks/broadpeaks_concordant/R1_ATAC-Me_THP1_PMA_Rep1A_0.broadPeak.q10 
+
+# Filter replicate 2 peak calls
+awk '{ if ($9 >= 10) { print } }' R1_ATAC-Me_THP1_PMA_Rep2A_0_val_1.fq.sam.bam.shifted.bed_peaks.broadPeak > \
+/data/hodges_lab/EH4889/trimmed_reads/mapped_reads/macs/pooledpeaks/broadpeaks_concordant/R1_ATAC-Me_THP1_PMA_Rep2A_0.broadPeak.q10 
+
+# Integrate peak calls from individual and merged replicates
+# Only select peak regions that are reproducible across these different peak calls
+# This code was originally source from Kundaje lab scripts in development as an ENCODE pipeline for ATAC-seq
+bedtools intersect -wo -a R1_ATAC-Me_THP1_PMA_Rep1A_0.mergedReps.broadPeak.q10 -b R1_ATAC-Me_THP1_PMA_Rep1A_0.broadPeak.q10 |
+awk 'BEGIN{FS="\t";OFS="\t"}{s1=$3-$2; s2=$12-$11; if (($19/s1 >= 0.5) || ($19/s2 >= 0.5)) {print $0}}' | cut -f 1-9 | sort | uniq |
+bedtools intersect -wo -a stdin -b R1_ATAC-Me_THP1_PMA_Rep2A_0.broadPeak.q10 |
+awk 'BEGIN{FS="\t";OFS="\t"}{s1=$3-$2; s2=$12-$11; if (($19/s1 >= 0.5) || ($19/s2 >= 0.5)) {print $0}}' | cut -f 1-9 | sort | uniq > THP1_ATAC_0_concordant.broadPeak
