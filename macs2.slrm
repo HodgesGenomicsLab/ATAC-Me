@@ -1,0 +1,29 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=4:00:00
+#SBATCH --mem=20G
+#SBATCH --job-name="macs2"
+#SBATCH -o macs2%A.out # Standard output
+#SBATCH -e macs2%A.err # Standard error
+#SBATCH --mail-user=
+#SBATCH --mail-type=END
+
+# Set up naming scheme for output files
+MAPPED=`basename $BAM .hum`
+
+# MACS2 can be sourced via lmod on the ACCRE computing cluster
+module restore macs2
+
+# call narrowpeaks and summits on bam files using bam paired end mode
+# Also output a read per million  normalized bigwig file
+macs2 callpeak \
+        -t ${BAM} -f BAMPE -n ${MACS_DIR}/${MAPPED} -g hs -q 0.005 \
+        -B --SPMR --keep-dup all --call-summits
+
+# call broadpeaks on bam files
+# Also output a read per million  normalized bigwig file
+macs2 callpeak \
+        -t ${BAM} -f BAMPE -n ${MACS_DIR}/${MAPPED} -g hs -q 0.005 \
+        -B --SPMR --keep-dup all --broad --broad-cutoff 0.005
