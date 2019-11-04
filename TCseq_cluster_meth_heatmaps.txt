@@ -1,0 +1,128 @@
+
+# Merge individual replicates into single meth file
+# Meth file is the symmetric CpG output of the MethPipe Suite
+
+merge-methcounts R1_ATAC-Me_THP1_PMA_Rep1A_0.meth R1_ATAC-Me_THP1_PMA_Rep2A_0.meth -o ATAC-Me_THP1_PMA_MERGE_0.meth
+merge-methcounts R1_ATAC-Me_THP1_PMA_Rep1A_30.meth R1_ATAC-Me_THP1_PMA_Rep2A_30.meth -o ATAC-Me_THP1_PMA_MERGE_30.meth
+merge-methcounts R1_ATAC-Me_THP1_PMA_Rep1A_60.meth R1_ATAC-Me_THP1_PMA_Rep2A_60.meth -o ATAC-Me_THP1_PMA_MERGE_60.meth
+merge-methcounts R1_ATAC-Me_THP1_PMA_Rep1A_120.meth R1_ATAC-Me_THP1_PMA_Rep2A_120.meth -o ATAC-Me_THP1_PMA_MERGE_120.meth
+merge-methcounts R1_ATAC-Me_THP1_PMA_Rep1A_24hr.meth R1_ATAC-Me_THP1_PMA_Rep2A_24hr.meth -o ATAC-Me_THP1_PMA_MERGE_24hr.meth
+
+# Filter out any CpGs that had no coverage within merged meth files from Methpipe suite
+
+awk -v OFS="\t" '{ if ($6 >= 1) { print } }' ATAC-Me_THP1_PMA_MERGE_0.meth > ATAC-Me_THP1_PMA_MERGE_0.meth.depth1
+awk -v OFS="\t" '{ if ($6 >= 1) { print } }' ATAC-Me_THP1_PMA_MERGE_30.meth > ATAC-Me_THP1_PMA_MERGE_30.meth.depth1
+awk -v OFS="\t" '{ if ($6 >= 1) { print } }' ATAC-Me_THP1_PMA_MERGE_60.meth > ATAC-Me_THP1_PMA_MERGE_60.meth.depth1
+awk -v OFS="\t" '{ if ($6 >= 1) { print } }' ATAC-Me_THP1_PMA_MERGE_120.meth > ATAC-Me_THP1_PMA_MERGE_120.meth.depth1
+awk -v OFS="\t" '{ if ($6 >= 1) { print } }' ATAC-Me_THP1_PMA_MERGE_24hr.meth > ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1
+
+# Transform merged, depth filtered meth files into bigwigs for input into deeptools
+
+awk '{OFS="\t"; print $1,$2,$2+1,$5}' < ATAC-Me_THP1_PMA_MERGE_0.meth.depth1 | wigToBigWig /dev/stdin /home/hodgese/data/drosophila_genome/fastas/hg19+dm3.chrom.sizes ATAC-Me_THP1_PMA_MERGE_0.meth.depth1.bw 
+awk '{OFS="\t"; print $1,$2,$2+1,$5}' < ATAC-Me_THP1_PMA_MERGE_30.meth.depth1 | wigToBigWig /dev/stdin /home/hodgese/data/drosophila_genome/fastas/hg19+dm3.chrom.sizes ATAC-Me_THP1_PMA_MERGE_30.meth.depth1.bw 
+awk '{OFS="\t"; print $1,$2,$2+1,$5}' < ATAC-Me_THP1_PMA_MERGE_60.meth.depth1 | wigToBigWig /dev/stdin /home/hodgese/data/drosophila_genome/fastas/hg19+dm3.chrom.sizes ATAC-Me_THP1_PMA_MERGE_60.meth.depth1.bw 
+awk '{OFS="\t"; print $1,$2,$2+1,$5}' < ATAC-Me_THP1_PMA_MERGE_120.meth.depth1 | wigToBigWig /dev/stdin /home/hodgese/data/drosophila_genome/fastas/hg19+dm3.chrom.sizes ATAC-Me_THP1_PMA_MERGE_120.meth.depth1.bw 
+awk '{OFS="\t"; print $1,$2,$2+1,$5}' < ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1 | wigToBigWig /dev/stdin /home/hodgese/data/drosophila_genome/fastas/hg19+dm3.chrom.sizes ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1.bw 
+
+# Process meth files with deeptools to generate heatmaps for each cluster of dynamic chromatin accessibility
+
+# Cluster 1	
+
+computeMatrix scale-regions -S \
+	WGBS_THP1_PMA_Rep1A_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_30.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_60.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_120.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1.bw \
+	WGBS_THP1_PMA_Rep1A_24hr.meth.depth1.bw \
+	-R /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/methylKit_files/TC_seq_EH/peak_subset_cluster_1.GREAT.bed \
+	--regionBodyLength 600 -b 300 -a 300 --outFileNameMatrix THP1_TCseqCluster1_ATACMeMerged_DNAMeth_0min_depth1.tsv \
+	-p 8 -bs 50 -o THP1_TCseqCluster1_ATACMeMerged_DNAMeth_0min_depth1.matrix 
+
+plotHeatmap --matrixFile THP1_TCseqCluster1_ATACMeMerged_DNAMeth_0min_depth1.matrix --outFileName Cluster1_MethHeatmap_InterpolationFix.eps \
+	--heatmapHeight 30 --heatmapWidth 10 --sortRegions descend --interpolationMethod nearest \
+	--xAxisLabel "DNA Methylation" --startLabel "Region Start" --endLabel "Region End" \
+	--regionsLabel "Cluster 1 Regions" --yMin 0 --yMax 1 --missingDataColor silver --colorMap plasma \
+	--samplesLabel "WGBS 0hr" "ATACMe 0hr" "ATACMe 0.5hr" "ATACMe 1hr" "ATACMe 2hr" "ATACMe 24hr" "WGBS 24hr" "Merged Time Course"
+
+# Cluster 2
+
+computeMatrix scale-regions -S \
+	WGBS_THP1_PMA_Rep1A_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_30.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_60.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_120.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1.bw \
+	WGBS_THP1_PMA_Rep1A_24hr.meth.depth1.bw \
+	-R /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/methylKit_files/TC_seq_EH/peak_subset_cluster_2.GREAT.bed \
+	--regionBodyLength 600 -b 300 -a 300 --outFileNameMatrix THP1_TCseqCluster2_ATACMeMerged_DNAMeth_0min_depth1.tsv \
+	-p 8 -bs 50 -o THP1_TCseqCluster2_ATACMeMerged_DNAMeth_0min_depth1.matrix 
+
+plotHeatmap --matrixFile THP1_TCseqCluster2_ATACMeMerged_DNAMeth_0min_depth1.matrix --outFileName Cluster2_MethHeatmap_InterpolationFix.eps \
+	--heatmapHeight 30 --heatmapWidth 10 --sortRegions descend --interpolationMethod nearest \
+	--xAxisLabel "DNA Methylation" --startLabel "Region Start" --endLabel "Region End" \
+	--regionsLabel "Cluster 2 Regions" --yMin 0 --yMax 1 --missingDataColor silver --colorMap plasma \
+	--samplesLabel "WGBS 0hr" "ATACMe 0hr" "ATACMe 0.5hr" "ATACMe 1hr" "ATACMe 2hr" "ATACMe 24hr" "WGBS 24hr" "Merged Time Course"
+
+# Cluster 3 
+
+computeMatrix scale-regions -S \
+	WGBS_THP1_PMA_Rep1A_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_30.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_60.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_120.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1.bw \
+	WGBS_THP1_PMA_Rep1A_24hr.meth.depth1.bw \
+	-R /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/methylKit_files/TC_seq_EH/peak_subset_cluster_3.GREAT.bed \
+	--regionBodyLength 600 -b 300 -a 300 --outFileNameMatrix THP1_TCseqCluster3_ATACMeMerged_DNAMeth_0min_depth1.tsv \
+	-p 8 -bs 50 -o THP1_TCseqCluster3_ATACMeMerged_DNAMeth_0min_depth1.matrix 
+
+plotHeatmap --matrixFile THP1_TCseqCluster3_ATACMeMerged_DNAMeth_0min_depth1.matrix --outFileName Cluster3_MethHeatmap_InterpolationFix.eps \
+	--heatmapHeight 30 --heatmapWidth 10 --sortRegions descend --interpolationMethod nearest \
+	--xAxisLabel "DNA Methylation" --startLabel "Region Start" --endLabel "Region End" \
+	--regionsLabel "Cluster 3 Regions" --yMin 0 --yMax 1 --missingDataColor silver --colorMap plasma \
+	--samplesLabel "WGBS 0hr" "ATACMe 0hr" "ATACMe 0.5hr" "ATACMe 1hr" "ATACMe 2hr" "ATACMe 24hr" "WGBS 24hr" "Merged Time Course"
+
+# Cluster 4 
+
+computeMatrix scale-regions -S \
+	WGBS_THP1_PMA_Rep1A_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_30.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_60.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_120.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1.bw \
+	WGBS_THP1_PMA_Rep1A_24hr.meth.depth1.bw \
+	-R /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/methylKit_files/TC_seq_EH/peak_subset_cluster_4.GREAT.bed \
+	--regionBodyLength 600 -b 300 -a 300 --outFileNameMatrix THP1_TCseqCluster4_ATACMeMerged_DNAMeth_0min_depth1.tsv \
+	-p 8 -bs 50 -o THP1_TCseqCluster4_ATACMeMerged_DNAMeth_0min_depth1.matrix 
+
+plotHeatmap --matrixFile THP1_TCseqCluster4_ATACMeMerged_DNAMeth_0min_depth1.matrix --outFileName Cluster4_MethHeatmap_InterpolationFix.eps \
+	--heatmapHeight 30 --heatmapWidth 10 --sortRegions descend --interpolationMethod nearest \
+	--xAxisLabel "DNA Methylation" --startLabel "Region Start" --endLabel "Region End" \
+	--regionsLabel "Cluster 4 Regions" --yMin 0 --yMax 1 --missingDataColor silver --colorMap plasma \
+	--samplesLabel "WGBS 0hr" "ATACMe 0hr" "ATACMe 0.5hr" "ATACMe 1hr" "ATACMe 2hr" "ATACMe 24hr" "WGBS 24hr" "Merged Time Course"
+
+# Cluster 5 
+
+computeMatrix scale-regions -S \
+	WGBS_THP1_PMA_Rep1A_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_0.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_30.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_60.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_120.meth.depth1.bw \
+	ATAC-Me_THP1_PMA_MERGE_24hr.meth.depth1.bw \
+	WGBS_THP1_PMA_Rep1A_24hr.meth.depth1.bw \
+	-R /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/methylKit_files/TC_seq_EH/peak_subset_cluster_5.GREAT.bed \
+	--regionBodyLength 600 -b 300 -a 300 --outFileNameMatrix THP1_TCseqCluster5_ATACMeMerged_DNAMeth_0min_depth1.tsv \
+	-p 8 -bs 50 -o THP1_TCseqCluster5_ATACMeMerged_DNAMeth_0min_depth1.matrix 
+
+plotHeatmap --matrixFile THP1_TCseqCluster5_ATACMeMerged_DNAMeth_0min_depth1.matrix --outFileName Cluster5_MethHeatmap_InterpolationFix.eps \
+	--heatmapHeight 30 --heatmapWidth 10 --sortRegions descend --interpolationMethod nearest \
+	--xAxisLabel "DNA Methylation" --startLabel "Region Start" --endLabel "Region End" \
+	--regionsLabel "Cluster 5 Regions" --yMin 0 --yMax 1 --missingDataColor silver --colorMap plasma \
+	--samplesLabel "WGBS 0hr" "ATACMe 0hr" "ATACMe 0.5hr" "ATACMe 1hr" "ATACMe 2hr" "ATACMe 24hr" "WGBS 24hr" "Merged Time Course"
+
