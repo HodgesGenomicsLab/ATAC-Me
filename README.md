@@ -33,9 +33,9 @@ Scripts and analysis approaches for ATAC-Me origin data
     - peak_filtering.txt
     
 ## Figure 1
-###### ATAC-Me vs. standard ATAC read count correlation
+###### ATAC-Me vs. Standard ATAC Read Count Correlation
     - read_count_correlation.txt
-###### Allelic methylation analysis
+###### Allelic Methylation Analysis
     - allelic_methylation_comparison.R
 
 ## Figure 2
@@ -45,7 +45,7 @@ Scripts and analysis approaches for ATAC-Me origin data
 
 ## Figure 3
 
-###### TC-seq Cluster DNA methylation Heatmaps
+###### DNA methylation Heatmaps Across TCseq Cluster Regions
     - TCseq_cluster_meth_heatmaps.txt
 
 ## Figure 4
