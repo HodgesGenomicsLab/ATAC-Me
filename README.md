@@ -19,7 +19,7 @@ Scripts and analysis approaches for ATAC-Me origin data
     
 ## Figure 1
 ###### ATAC-Me vs. standard ATAC read count correlation
-    - 
+    - read_count_correlation.txt
 ###### Allelic methylation analysis
     - allelic_methylation_comparison.R
 
