@@ -1,0 +1,49 @@
+### Get union of peak regions to create common set of genomic intervals for comparison
+
+# Concatenate all peak files into one file
+
+cat ATAC-Me_THP1_PMA_Rep1A_0.hum.RepMerge_peaks.broadPeak.q10 \
+	ATAC-Me_THP1_PMA_Rep1A_30.hum.RepMerge_peaks.broadPeak.q10 \
+	ATAC-Me_THP1_PMA_Rep1A_60.hum.RepMerge_peaks.broadPeak.q10 \
+	ATAC-Me_THP1_PMA_Rep1A_120.hum.RepMerge_peaks.broadPeak.q10 \
+	ATAC-Me_THP1_PMA_Rep1A_24hr.hum.RepMerge_peaks.broadPeak.q10 > Union.RepMerge_peaks.broadPeak.q10
+# Sort concatenated file in prep for bedtools merge 
+	
+bedtools sort -i Union.RepMerge_peaks.broadPeak.q10 > Union.RepMerge_peaks.broadPeak.q10.sort 
+
+# Merge overlapping peak regions into union regions
+
+bedtools merge -i Union.RepMerge_peaks.broadPeak.q10.sort > merged.Union.RepMerge_peaks.broadPeak.q10.sort
+
+
+### Use deeptools to compute read counts for ATAC-Me or standard ATAC among a common set of genomic peak regions
+
+multiBigwigSummary BED-file \
+	-b ATAC-Me_THP1_PMA_Rep1A_0.hum.RepMerge.bw \
+	/data/hodges_lab/EH4889/stand_atac/trimmed_reads/mapped_reads/macs/bigwigs/StATAC_THP1_PMA_Rep1A_0.hum.RepMerge.bw \
+	--labels ATAC-Me-RepMerge-0min StATAC-RepMerge-0min -p 8 \
+	--BED /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/macs/mergedreps/merged.Union.RepMerge_peaks.broadPeak.q10.sort \
+	-out ATAC-Me_vs_ATAC_Comparison_RepMerge_BedMode_0min.npz 
+
+multiBigwigSummary BED-file \
+	-b ATAC-Me_THP1_PMA_Rep1A_24hr.hum.RepMerge.bw \
+	/data/hodges_lab/EH4889/stand_atac/trimmed_reads/mapped_reads/macs/bigwigs/StATAC_THP1_PMA_Rep1A_24hr.hum.RepMerge.bw \
+	--labels ATAC-Me-RepMerge-24hr StATAC-RepMerge-24hr -p 8 \
+	--BED /data/hodges_lab/EH4889/trimmed_reads/mapped_reads/methprocessed/macs/mergedreps/merged.Union.RepMerge_peaks.broadPeak.q10.sort \
+	-out ATAC-Me_vs_ATAC_Comparison_RepMerge_BedMode_24hr.npz 
+
+# Plot spearman correlation scatterplot to compare readcounts between ATAC-Me and standard ATAC
+
+plotCorrelation \
+	-in ATAC-Me_vs_ATAC_Comparison_RepMerge_BedMode_0min.npz \
+	--corMethod spearman --xRange 0 1 --yRange 0 1 --skipZeros --log1p --colorMap Spectral \
+	--plotTitle "Spearman Correlation of ATAC-Me vs. ATAC" \
+	--whatToPlot scatterplot --removeOutliers --plotHeight 6 --plotWidth 6 \
+	-o ATAC-Me_vs_ATAC_Comparison_Spearman_unionq10broadpeaks_log1p_0min_sameScale.eps 	
+	
+plotCorrelation \
+	-in ATAC-Me_vs_ATAC_Comparison_RepMerge_BedMode_24hr.npz \
+	--corMethod spearman --xRange 0 1 --yRange 0 1 --skipZeros --log1p --colorMap Spectral \
+	--plotTitle "Spearman Correlation of ATAC-Me vs. ATAC" \
+	--whatToPlot scatterplot --removeOutliers --plotHeight 6 --plotWidth 6 \
+	-o ATAC-Me_vs_ATAC_Comparison_Spearman_unionq10broadpeaks_log1p_24hr_sameScale.eps
