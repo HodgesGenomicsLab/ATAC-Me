@@ -1,5 +1,7 @@
 # ATAC-Me
 Scripts and analysis approaches for ATAC-Me origin data
+Most scripts assume access to a high power computer or cluster computing environment
+
 ## Software 
 
     - bedtools v2.26.0
