@@ -4,8 +4,8 @@ Scripts and analysis approaches for ATAC-Me origin data
 ## General Processing Scripts
 
 1. Trimming
-  trimming_loop.sh  
-  trim.slrm
+    trimming_loop.sh  
+    trim.slrm
   
 
 ## Figure 1
