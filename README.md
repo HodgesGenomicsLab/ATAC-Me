@@ -20,16 +20,18 @@ Most scripts assume access to a high power computer or cluster computing environ
 
 ## General Processing Scripts
 
-1. Trimming
+###### Trimming
     - trimming_loop.sh
     - trim.slrm
-2. Mapping 
+###### Mapping 
     - mapping_loop_walt.sh
     - mapping_walt.slrm
-3. Methylation levels
+    - StandardATAC_Bowtie_Loop.sh
+    - StandardATAC_Bowtie.slrm
+###### Methylation levels
     - methpipe_loop.sh
     - methpipe.slrm
-4. Peak calling
+###### Peak calling
     - macs2_loop.sh
     - mapping_loop_walt.sh
     - peak_filtering.txt
