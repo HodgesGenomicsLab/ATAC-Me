@@ -1,0 +1,29 @@
+#!/bin/bash
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --time=1:00:00
+#SBATCH --mem=16G
+#SBATCH --job-name="StATAC"
+#SBATCH -o StATAC_%A.out
+#SBATCH -e StATAC_%A.err
+#SBATCH --mail-user=
+#SBATCH --mail-type=END
+
+
+MAPPED=`basename $R1`
+
+# Map with Bowtie2
+bowtie2 -p 8 --no-discordant --no-mixed -X 1000 -x ${INDEX} -1 ${R1} -2 ${R2} -S ${MAPPED_DIR}/${MAPPED}.sam
+
+# Convert to bam format
+samtools view -q 30 -b ${MAPPED_DIR}/${MAPPED}.sam -o ${MAPPED_DIR}/${MAPPED}.bam
+
+# sorts bam file which is required for downstream processing
+samtools sort ${MAPPED_DIR}/${MAPPED}.bam -o ${MAPPED_DIR}/${MAPPED}.srt
+
+# create index of sorted bam file for use in samtools view region arguments
+samtools index -b ${MAPPED_DIR}/${MAPPED}.srt ${MAPPED_DIR}/${MAPPED}.srt.bai
+
+# splits human reads and removes mito reads
+samtools view -bh ${MAPPED_DIR}/${MAPPED}.srt chr1 chr2 chr3 chr4 chr5 chr6 chr7 chr8 chr9 chr10 chr11 chr12 chr13 chr14 chr15 chr16 chr17 chr18 chr19 chr20 chr21 chr22 chrX chrY > ${MAPPED_DIR}/${MAPPED}.hum
