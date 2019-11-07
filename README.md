@@ -51,8 +51,17 @@ Most scripts assume access to a high power computer or cluster computing environ
     - TCseq_cluster_meth_heatmaps.txt
 
 ## Figure 4
-###### 
+###### KEGG Pathway/GO Analysis of Dynamic ATAC Peak Neighboring Genes
+
+###### K-means Clustering of RNA-seq Differential Genes
+    - DEseq2_RNA_Timecourse.R
+###### Hierarchical Clustering of Top Variable Genes Near Dynamic ATAC Peaks + Methylation
+    - topVariable_Genes_Heatmap.R 
 ## Figure 5
-
+###### Scatterplot Correlations of ATAC vs. RNA and Methylation vs. RNA
+    - Correlation_Scatterplot_ATAC_RNA_Meth.R
+###### Boxplot Time Series Integrating ATAC, RNA, Methylation
+    - Integrative_Boxplot_TimeSeries.R
 ## Figure 6
-
+###### Boxplot Time Series for Extended Time Point Data
+    - Extended_Timepoints_Boxplot_Comparision.R
