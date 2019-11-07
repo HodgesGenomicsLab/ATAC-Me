@@ -27,3 +27,8 @@ module load Intel/2016.3.210-GCC-5.4.0-2.26 Python/2.7.12
 # These can be discarded if disk storage space is an issue
 
 trim_galore --fastqc --fastqc_args "--outdir ${FASTQC_DIR}" --clip_R1 9 --clip_R2 9 --paired --retain_unpaired --output_dir ${TRIM_DIR} ${R1} ${R2}
+
+# Trimming command for Standard ATAC
+# Clipping is not necessary for trimming standard ATAC libraries 
+
+trim_galore --fastqc --fastqc_args "--outdir ${FASTQC_DIR}" --paired --retain_unpaired --output_dir ${TRIM_DIR} ${R1} ${R2}
