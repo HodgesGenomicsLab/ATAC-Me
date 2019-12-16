@@ -33,7 +33,6 @@
     - methpipe.slrm
 ###### Peak calling
     - macs2_loop.sh
-    - mapping_loop_walt.sh
     - peak_filtering.txt
     
 ## Figure 1
